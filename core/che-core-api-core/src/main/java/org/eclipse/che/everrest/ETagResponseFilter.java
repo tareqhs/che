@@ -19,18 +19,21 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerResponseContext;
+import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.ext.Provider;
 import org.eclipse.che.dto.server.JsonSerializable;
-import org.everrest.core.ApplicationContext;
-import org.everrest.core.Filter;
-import org.everrest.core.GenericContainerResponse;
-import org.everrest.core.ResponseFilter;
 
 /**
  * Filter implementing {@link org.everrest.core.ResponseFilter} in order to generate ETag for
@@ -39,8 +42,8 @@ import org.everrest.core.ResponseFilter;
  *
  * @author Florent Benoit
  */
-@Filter
-public class ETagResponseFilter implements ResponseFilter {
+@Provider
+public class ETagResponseFilter implements ContainerResponseFilter {
 
   public enum EntityType {
     JSON_SERIALIZABLE,
@@ -53,7 +56,10 @@ public class ETagResponseFilter implements ResponseFilter {
    *
    * @param containerResponse the response to use
    */
-  public void doFilter(GenericContainerResponse containerResponse) {
+  @Override
+  public void filter(
+      ContainerRequestContext requestContext, ContainerResponseContext containerResponse)
+      throws IOException {
 
     // get entity of the response
     Object entity = containerResponse.getEntity();
@@ -64,13 +70,12 @@ public class ETagResponseFilter implements ResponseFilter {
     }
 
     // Only handle JSON content
-    if (!MediaType.APPLICATION_JSON_TYPE.equals(containerResponse.getContentType())) {
+    if (!MediaType.APPLICATION_JSON_TYPE.equals(containerResponse.getMediaType())) {
       return;
     }
 
     // Get the request
-    ApplicationContext applicationContext = ApplicationContext.getCurrent();
-    Request request = applicationContext.getRequest();
+    Request request = requestContext.getRequest();
 
     // manage only GET requests
     if (!HttpMethod.GET.equals(request.getMethod())) {
@@ -109,7 +114,8 @@ public class ETagResponseFilter implements ResponseFilter {
 
       // not modified ?
       if (builder != null) {
-        containerResponse.setResponse(builder.tag(entityTag).build());
+        containerResponse.setStatusInfo(Status.NOT_MODIFIED);
+        containerResponse.getHeaders().putSingle(HttpHeaders.ETAG, entityTag);
       } else {
         // it has been changed, so send response with new ETag and entity
         Response.ResponseBuilder responseBuilder =

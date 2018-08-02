@@ -24,10 +24,6 @@
     <name>Che Core :: Commons :: Json helpers</name>
     <dependencies>
         <dependency>
-            <groupId>org.everrest</groupId>
-            <artifactId>everrest-core</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>

@@ -48,10 +48,10 @@ import javax.annotation.PreDestroy;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import org.eclipse.che.commons.lang.concurrent.LoggingUncaughtExceptionHandler;
+import org.eclipse.che.inject.jersey.JerseyGuiceBootstrap;
 import org.eclipse.che.inject.lifecycle.DestroyModule;
 import org.eclipse.che.inject.lifecycle.Destroyer;
 import org.eclipse.che.inject.lifecycle.InitModule;
-import org.everrest.guice.servlet.EverrestGuiceContextListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -120,7 +120,7 @@ import org.slf4j.LoggerFactory;
  * @author Florent Benoit
  * @author Sergii Kabashniuk
  */
-public class CheBootstrap extends EverrestGuiceContextListener {
+public class CheBootstrap extends JerseyGuiceBootstrap {
   private static final Logger LOG = LoggerFactory.getLogger(CheBootstrap.class);
 
   /** Environment variable that is used to override some Che settings properties. */
